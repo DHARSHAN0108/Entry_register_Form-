@@ -1,4 +1,4 @@
-Register_entry_form
+# Register_entry_form
 A modern Django-based Entry Register Web Application that allows visitors to register their details and book an appointment in a step-by-step form with file upload and validation. The system provides an easy-to-use UI with gradient backgrounds, modern pop-up modals for validation, and an integrated admin dashboard for viewing all entries. 🚀 Features 🌐 Frontend (User Side)
 
 Multi-step form:
