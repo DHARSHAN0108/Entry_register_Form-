@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointment Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #1f1c2c, #928DAB);
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      color: white;
+      margin: 0;
+      overflow-x: hidden;
+    }
+
+    .dashboard-wrapper {
+      display: flex;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Left edge trigger zone */
+    .sidebar-trigger {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 15px;
+      height: 100vh;
+      z-index: 2000;
+      background: transparent;
+    }
+
+    /* Sidebar Styling */
+    .sidebar {
+      width: 280px;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 20px 0;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1500;
+      transform: translateX(-280px);
+      box-shadow: 5px 0 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .sidebar.show {
+      transform: translateX(0);
+    }
+
+    .sidebar:hover {
+      transform: translateX(0);
+    }
+
+    .sidebar-header {
+      padding: 20px 25px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .sidebar-toggle {
+      position: absolute;
+      right: 15px;
+      top: 20px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      border-radius: 5px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-toggle:hover {
+      background: rgba(255,255,255,0.2);
+      transform: scale(1.1);
+    }
+
+    .sidebar-header h3 {
+      color: #00d2ff;
+      font-weight: 700;
+      font-size: 1.3rem;
+      margin: 0;
+      padding-right: 30px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar-menu li {
+      margin: 5px 0;
+    }
+
+    .sidebar-menu a {
+      display: flex;
+      align-items: center;
+      padding: 15px 25px;
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-menu a:hover,
+    .sidebar-menu a.active {
+      background: rgba(0, 210, 255, 0.1);
+      color: #00d2ff;
+      border-left-color: #00d2ff;
+      transform: translateX(5px);
+    }
+
+    .sidebar-menu i {
+      margin-right: 12px;
+      width: 20px;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+
+    .sidebar-menu .badge {
+      margin-left: auto;
+      font-size: 0.75rem;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 100%;
+      margin-left: 0;
+    }
+
+    .main-content.shifted {
+      margin-left: 280px;
+      width: calc(100% - 280px);
+    }
+
+    .dashboard-container {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(15px);
+      border-radius: 25px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+      animation: fadeIn 1s ease;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .content-title {
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 1px;
+      margin: 0;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .welcome-user {
+      background: rgba(0,210,255,0.2);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-weight: 600;
+      color: #00d2ff;
+      border: 2px solid #00d2ff;
+      white-space: nowrap;
+    }
+
+    .welcome-user i {
+      margin-right: 8px;
+    }
+
+    /* Table Styling */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 20px;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .table-custom {
+      width: 100%;
+      background: rgba(255,255,255,0.1);
+      border-radius: 15px;
+      overflow: hidden;
+      margin: 0;
+      min-width: 1200px;
+    }
+
+    .table-custom th,
+    .table-custom td {
+      vertical-align: middle;
+      text-align: center;
+      padding: 12px 8px;
+      word-wrap: break-word;
+      border: none;
+      white-space: nowrap;
+    }
+
+    /* Specific column widths for better layout */
+    .table-custom th:nth-child(1),
+    .table-custom td:nth-child(1) { /* S.No */
+      width: 50px;
+      min-width: 50px;
+    }
+
+    .table-custom th:nth-child(2),
+    .table-custom td:nth-child(2) { /* Time */
+      width: 80px;
+      min-width: 80px;
+    }
+
+    .table-custom th:nth-child(3),
+    .table-custom td:nth-child(3) { /* Name */
+      width: 120px;
+      min-width: 120px;
+      white-space: normal;
+    }
+
+    .table-custom th:nth-child(4),
+    .table-custom td:nth-child(4) { /* Email */
+      width: 180px;
+      min-width: 180px;
+      white-space: normal;
+      word-break: break-all;
+    }
+
+    .table-custom th:nth-child(5),
+    .table-custom td:nth-child(5) { /* Phone */
+      width: 100px;
+      min-width: 100px;
+    }
+
+    .table-custom th:nth-child(6),
+    .table-custom td:nth-child(6) { /* Category */
+      width: 100px;
+      min-width: 100px;
+    }
+
+    .table-custom th:nth-child(7),
+    .table-custom td:nth-child(7) { /* Reason */
+      width: 200px;
+      min-width: 200px;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .table-custom th:nth-child(8),
+    .table-custom td:nth-child(8) { /* Status */
+      width: 100px;
+      min-width: 100px;
+    }
+
+    .table-custom th:nth-child(9),
+    .table-custom td:nth-child(9) { /* Document */
+      width: 80px;
+      min-width: 80px;
+    }
+
+    .table-custom th:nth-child(10),
+    .table-custom td:nth-child(10) { /* Actions */
+      width: 150px;
+      min-width: 150px;
+    }
+
+    .table-custom thead {
+      background: rgba(0,210,255,0.3);
+      color: #fff;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .table-custom tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .table-custom tbody tr:hover {
+      background: rgba(255,255,255,0.15);
+      transition: 0.3s;
+    }
+
+    .badge {
+      font-size: 0.85rem;
+      padding: 6px 12px;
+      border-radius: 12px;
+    }
+
+    /* Date Section */
+    .date-section {
+      margin-bottom: 40px;
+      width: 100%;
+    }
+
+    .date-heading {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 15px;
+      padding: 12px 20px;
+      background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+      border-radius: 15px;
+      box-shadow: 0 6px 20px rgba(0,210,255,0.4);
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      min-width: 30px;
+    }
+
+    .btn-approve {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-approve:hover {
+      background: #218838;
+      transform: scale(1.05);
+    }
+
+    .btn-reject {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-reject:hover {
+      background: #c82333;
+      transform: scale(1.05);
+    }
+
+    .btn-reschedule {
+      background: #ffc107;
+      color: #000;
+    }
+
+    .btn-reschedule:hover {
+      background: #e0a800;
+      transform: scale(1.05);
+    }
+
+    .btn-complete {
+      background: #6f42c1;
+      color: white;
+    }
+
+    .btn-complete:hover {
+      background: #5a32a3;
+      transform: scale(1.05);
+    }
+
+    .btn-delete {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background: #c0392b;
+      transform: scale(1.05);
+    }
+
+    .btn-outline-light {
+      color: #fff !important;
+      border: 2px solid #00d2ff !important;
+      background: rgba(0,210,255,0.2);
+      font-weight: 600;
+      transition: all 0.3s ease-in-out;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+    }
+
+    .btn-outline-light:hover {
+      background: #00d2ff !important;
+      color: #000 !important;
+      transform: scale(1.05);
+      box-shadow: 0 0 12px rgba(0,210,255,0.8);
+    }
+
+    /* Status badges */
+    .status-pending { background: #6c757d; }
+    .status-approved { background: #28a745; }
+    .status-rejected { background: #dc3545; }
+    .status-rescheduled { background: #ffc107; color: #000; }
+    .status-completed { background: #6f42c1; }
+    .status-scheduled { background: #17a2b8; }
+
+    /* Mobile responsiveness */
+    @media (max-width: 1200px) {
+      .table-custom {
+        min-width: 1000px;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .main-content {
+        padding: 20px;
+      }
+      
+      .dashboard-container {
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-280px);
+      }
+      
+      .sidebar.show {
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+        width: 100%;
+        padding: 15px;
+      }
+
+      .main-content.shifted {
+        margin-left: 0;
+        width: 100%;
+      }
+
+      .content-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .welcome-user {
+        align-self: flex-start;
+        margin-top: 10px;
+      }
+
+      .table-custom th,
+      .table-custom td {
+        padding: 8px 6px;
+        font-size: 0.9rem;
+      }
+
+      .action-buttons {
+        gap: 4px;
+      }
+
+      .btn-action {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+      }
+    }
+
+    /* Animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .filter-section {
+      background: rgba(255,255,255,0.08);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* Scrollbar styling for better UX */
+    .table-container::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .table-container::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+    }
+
+    .table-container::-webkit-scrollbar-thumb {
+      background: rgba(0,210,255,0.3);
+      border-radius: 4px;
+    }
+
+    .table-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(0,210,255,0.5);
+    }
+
+    /* Confirmation Modal */
+    .modal-content {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 25px;
+      color: white;
+    }
+
+    .modal-header {
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .modal-footer {
+      border-top: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .btn-modal-confirm {
+      background: linear-gradient(90deg, #dc3545, #c82333);
+      color: white;
+      border: none;
+    }
+
+    .btn-modal-cancel {
+      background: rgba(108, 117, 125, 0.8);
+      color: white;
+      border: none;
+    }
+
+    /* Sidebar visibility indicator */
+    .sidebar-hint {
+      position: fixed;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 60px;
+      background: linear-gradient(to bottom, transparent, #00d2ff, transparent);
+      border-radius: 0 4px 4px 0;
+      z-index: 1000;
+      opacity: 0.6;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.8; }
+    }
+
+    .sidebar-hint.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar trigger zone -->
+  <div class="sidebar-trigger" id="sidebarTrigger"></div>
+  
+  <!-- Sidebar visibility hint -->
+  <div class="sidebar-hint" id="sidebarHint"></div>
+
+  <div class="dashboard-wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h3><i class="fas fa-calendar-check me-2"></i>Dashboard</h3>
+        <button class="sidebar-toggle" id="closeSidebar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li>
+          <a href="#" class="menu-item active" data-section="all">
+            <i class="fas fa-list-ul"></i>
+            <span>All Appointments</span>
+            <span class="badge bg-primary" id="count-all">0</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="menu-item" data-section="scheduled">
+            <i class="fas fa-calendar-day"></i>
+            <span>Scheduled</span>
+            <span class="badge bg-info" id="count-scheduled">0</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="menu-item" data-section="approved">
+            <i class="fas fa-check-circle"></i>
+            <span>Approved</span>
+            <span class="badge bg-success" id="count-approved">0</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="menu-item" data-section="rejected">
+            <i class="fas fa-times-circle"></i>
+            <span>Rejected</span>
+            <span class="badge bg-danger" id="count-rejected">0</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="menu-item" data-section="rescheduled">
+            <i class="fas fa-clock"></i>
+            <span>Rescheduled</span>
+            <span class="badge bg-warning" id="count-rescheduled">0</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="menu-item" data-section="completed">
+            <i class="fas fa-check-double"></i>
+            <span>Completed</span>
+            <span class="badge bg-purple" id="count-completed" style="background-color: #6f42c1;">0</span>
+          </a>
+        </li>
+      </ul>
+      
+      <div class="mt-auto p-3">
+        <a href="{% url 'receptionist_logout' %}" class="btn btn-danger w-100">
+          <i class="fas fa-sign-out-alt me-2"></i>Logout
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+      <div class="dashboard-container">
+        <!-- Header -->
+        <div class="content-header">
+          <h1 class="content-title">
+            <i class="fas fa-calendar-alt me-2"></i>
+            <span id="section-title">All Appointments</span>
+          </h1>
+          <div class="welcome-user">
+            <i class="fas fa-user"></i>Welcome, {{ receptionist_username }}
+          </div>
+        </div>
+
+        <!-- Content Area -->
+        <div id="content-area">
+          <!-- All Appointments Section -->
+          <div class="content-section" id="all-section">
+            <!-- Content will be loaded dynamically -->
+          </div>
+
+          <!-- Scheduled Appointments Section -->
+          <div class="content-section d-none" id="scheduled-section">
+            <!-- Content will be loaded dynamically -->
+          </div>
+
+          <!-- Approved Appointments Section -->
+          <div class="content-section d-none" id="approved-section">
+            <!-- Content will be loaded dynamically -->
+          </div>
+
+          <!-- Rejected Appointments Section -->
+          <div class="content-section d-none" id="rejected-section">
+            <!-- Content will be loaded dynamically -->
+          </div>
+
+          <!-- Rescheduled Appointments Section -->
+          <div class="content-section d-none" id="rescheduled-section">
+            <!-- Content will be loaded dynamically -->
+          </div>
+
+          <!-- Completed Appointments Section -->
+          <div class="content-section d-none" id="completed-section">
+            <!-- Content will be loaded dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirmationMessage">Are you sure you want to perform this action?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-modal-confirm" id="confirmAction">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+ <script>
+  // Global variables
+  let allAppointments = [];
+  let pendingAction = null;
+  let sidebarTimeout = null;
+  let isMouseInSidebar = false;
+  let sidebarPinned = false;
+
+  // ---------------- Sidebar Functions ----------------
+  function initializeDynamicSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const sidebarTrigger = document.getElementById('sidebarTrigger');
+    const sidebarHint = document.getElementById('sidebarHint');
+    const mainContent = document.getElementById('mainContent');
+
+    sidebarTrigger.addEventListener('mouseenter', function () {
+      showSidebar();
+    });
+
+    sidebar.addEventListener('mouseenter', function () {
+      isMouseInSidebar = true;
+      clearTimeout(sidebarTimeout);
+    });
+
+    sidebar.addEventListener('mouseleave', function () {
+      isMouseInSidebar = false;
+      if (!sidebarPinned) {
+        sidebarTimeout = setTimeout(hideSidebar, 500);
+      }
+    });
+
+    sidebar.addEventListener('transitionend', function () {
+      if (sidebar.classList.contains('show')) {
+        sidebarHint.classList.add('hidden');
+      } else {
+        sidebarHint.classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('closeSidebar').addEventListener('click', function () {
+      if (sidebarPinned) {
+        sidebarPinned = false;
+        hideSidebar();
+      } else {
+        sidebarPinned = true;
+      }
+    });
+  }
+
+  function showSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+    sidebar.classList.add('show');
+    if (window.innerWidth > 768) {
+      mainContent.classList.add('shifted');
+    }
+  }
+
+  function hideSidebar() {
+    if (sidebarPinned || isMouseInSidebar) return;
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+    sidebar.classList.remove('show');
+    mainContent.classList.remove('shifted');
+  }
+
+  // ---------------- Fetch Appointments ----------------
+  async function fetchAppointments() {
+    try {
+      const response = await fetch('/get_appointments/');
+      const data = await response.json();
+      allAppointments = data.appointments;
+      renderAppointments('all');
+      updateCounts();
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    }
+  }
+
+  // ---------------- Update Status ----------------
+  async function updateStatus(appointmentId, newStatus) {
+    try {
+      const response = await fetch('/update_appointment_status/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ id: appointmentId, status: newStatus }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const appointment = allAppointments.find(a => a.id == appointmentId);
+        if (appointment) {
+          appointment.status = newStatus;
+        }
+        const activeSection = document.querySelector('.menu-item.active').dataset.section;
+        renderAppointments(activeSection);
+        updateCounts();
+      }
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+    }
+  }
+
+  // ---------------- Delete Appointment ----------------
+  async function deleteAppointment(appointmentId) {
+    try {
+      const response = await fetch('/delete_appointment/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({ id: appointmentId }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        allAppointments = allAppointments.filter(a => a.id != appointmentId);
+        const activeSection = document.querySelector('.menu-item.active').dataset.section;
+        renderAppointments(activeSection);
+        updateCounts();
+      }
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+    }
+  }
+
+  // ---------------- Confirmation Modal ----------------
+  function showConfirmation(message, action) {
+    document.getElementById('confirmationMessage').textContent = message;
+    pendingAction = action;
+    const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+    modal.show();
+  }
+
+  document.getElementById('confirmAction').addEventListener('click', function () {
+    if (pendingAction) {
+      pendingAction();
+      pendingAction = null;
+    }
+    const modal = bootstrap.Modal.getInstance(document.getElementById('confirmationModal'));
+    modal.hide();
+  });
+
+  // ---------------- Helper for CSRF ----------------
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // ---------------- Action Buttons ----------------
+  function generateActionButtons(app, section) {
+    let buttons = '';
+    if (section === 'all') return '';
+    switch (section) {
+      case 'scheduled':
+        buttons = `
+          <button class="btn-action btn-approve" onclick="updateStatus(${app.id}, 'approved')" ${app.status === 'approved' ? 'disabled' : ''}>
+            <i class="fas fa-check"></i>
+          </button>
+          <button class="btn-action btn-reject" onclick="updateStatus(${app.id}, 'rejected')" ${app.status === 'rejected' ? 'disabled' : ''}>
+            <i class="fas fa-times"></i>
+          </button>
+          <button class="btn-action btn-reschedule" onclick="updateStatus(${app.id}, 'rescheduled')" ${app.status === 'rescheduled' ? 'disabled' : ''}>
+            <i class="fas fa-clock"></i>
+          </button>`;
+        break;
+
+      case 'approved':
+        buttons = `
+          <button class="btn-action btn-reject" onclick="updateStatus(${app.id}, 'rejected')">
+            <i class="fas fa-times"></i>
+          </button>
+          <button class="btn-action btn-reschedule" onclick="updateStatus(${app.id}, 'rescheduled')">
+            <i class="fas fa-clock"></i>
+          </button>
+          <button class="btn-action btn-complete" onclick="updateStatus(${app.id}, 'completed')">
+            <i class="fas fa-check-double"></i>
+          </button>`;
+        break;
+
+      case 'rejected':
+        buttons = `
+          <button class="btn-action btn-reschedule" onclick="updateStatus(${app.id}, 'rescheduled')">
+            <i class="fas fa-clock"></i>
+          </button>
+          <button class="btn-action btn-delete" onclick="showConfirmation('Are you sure you want to permanently delete this appointment?', () => deleteAppointment(${app.id}))">
+            <i class="fas fa-trash"></i>
+          </button>`;
+        break;
+
+      case 'rescheduled':
+        buttons = `
+          <button class="btn-action btn-approve" onclick="updateStatus(${app.id}, 'approved')">
+            <i class="fas fa-check"></i>
+          </button>
+          <button class="btn-action btn-reject" onclick="updateStatus(${app.id}, 'rejected')">
+            <i class="fas fa-times"></i>
+          </button>`;
+        break;
+
+      case 'completed':
+        buttons = `
+          <button class="btn-action btn-delete" onclick="showConfirmation('Are you sure you want to permanently delete this completed appointment?', () => deleteAppointment(${app.id}))">
+            <i class="fas fa-trash"></i>
+          </button>`;
+        break;
+    }
+    return buttons;
+  }
+
+  // ---------------- Render Appointments ----------------
+  function renderAppointments(section) {
+    let filteredAppointments = [];
+    if (section === 'all') {
+      filteredAppointments = allAppointments;
+    } else if (section === 'scheduled') {
+      filteredAppointments = allAppointments.filter(a => a.status === 'pending' || a.status === 'approved');
+    } else {
+      filteredAppointments = allAppointments.filter(a => a.status === section);
+    }
+
+    const groupedByDate = {};
+    filteredAppointments.forEach(app => {
+      if (!groupedByDate[app.date]) groupedByDate[app.date] = [];
+      groupedByDate[app.date].push(app);
+    });
+
+    const sectionElement = document.getElementById(`${section}-section`);
+    sectionElement.innerHTML = '';
+
+    for (const [date, appointments] of Object.entries(groupedByDate)) {
+      const dateSection = document.createElement('div');
+      dateSection.className = 'date-section';
+
+      const dateHeading = document.createElement('h3');
+      dateHeading.className = 'date-heading';
+      const today = new Date().toISOString().split('T')[0];
+      dateHeading.textContent = date === today ? `Today – ${date}` : date;
+
+      const tableWrapper = document.createElement('div');
+      tableWrapper.className = 'table-container';
+
+      const table = document.createElement('table');
+      table.className = 'table table-hover table-custom text-center align-middle';
+
+      const thead = document.createElement('thead');
+      thead.innerHTML = `
+        <tr>
+          <th>S.No</th>
+          <th>Time</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Category</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>Document</th>
+          ${section !== 'all' ? '<th>Actions</th>' : ''}
+        </tr>`;
+      const tbody = document.createElement('tbody');
+
+      appointments.forEach((app, index) => {
+        const row = document.createElement('tr');
+        const statusClass = `status-${app.status}`;
+        const statusText = app.status.charAt(0).toUpperCase() + app.status.slice(1);
+
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td><span class="badge bg-warning text-dark">${app.time}</span></td>
+          <td>${app.name}</td>
+          <td>${app.email}</td>
+          <td>${app.phone}</td>
+          <td><span class="badge bg-info">${app.category}</span></td>
+          <td>${app.reason}</td>
+          <td><span class="badge ${statusClass}">${statusText}</span></td>
+          <td>
+            ${app.document_url 
+              ? `<a href="${app.document_url}" class="btn btn-sm btn-outline-light" target="_blank"><i class="fas fa-file-pdf"></i></a>` 
+              : '<span class="text-muted">No file</span>'}
+          </td>
+          ${section !== 'all' ? `<td><div class="action-buttons">${generateActionButtons(app, section)}</div></td>` : ''}`;
+        tbody.appendChild(row);
+      });
+
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      tableWrapper.appendChild(table);
+      dateSection.appendChild(dateHeading);
+      dateSection.appendChild(tableWrapper);
+      sectionElement.appendChild(dateSection);
+    }
+
+    if (Object.keys(groupedByDate).length === 0) {
+      sectionElement.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-calendar-times"></i>
+          <h4>No appointments found</h4>
+          <p>There are no ${section} appointments to display.</p>
+        </div>`;
+    }
+  }
+
+  // ---------------- Update Sidebar Counts ----------------
+  function updateCounts() {
+    const counts = {
+      all: allAppointments.length,
+      scheduled: allAppointments.filter(a => a.status === 'pending' || a.status === 'approved').length,
+      approved: allAppointments.filter(a => a.status === 'approved').length,
+      rejected: allAppointments.filter(a => a.status === 'rejected').length,
+      rescheduled: allAppointments.filter(a => a.status === 'rescheduled').length,
+      completed: allAppointments.filter(a => a.status === 'completed').length
+    };
+    Object.keys(counts).forEach(status => {
+      const countElement = document.getElementById(`count-${status}`);
+      if (countElement) countElement.textContent = counts[status];
+    });
+  }
+
+  // ---------------- Sidebar Navigation ----------------
+  document.querySelectorAll('.menu-item').forEach(item => {
+    item.addEventListener('click', function (e) {
+      e.preventDefault();
+      document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      const section = this.dataset.section;
+      document.querySelectorAll('.content-section').forEach(s => s.classList.add('d-none'));
+      document.getElementById(section + '-section').classList.remove('d-none');
+      const titles = {
+        'all': 'All Appointments',
+        'scheduled': 'Scheduled Appointments',
+        'approved': 'Approved Appointments',
+        'rejected': 'Rejected Appointments',
+        'rescheduled': 'Rescheduled Appointments',
+        'completed': 'Completed Appointments'
+      };
+      document.getElementById('section-title').textContent = titles[section];
+      renderAppointments(section);
+      if (window.innerWidth <= 768 && !sidebarPinned) setTimeout(hideSidebar, 300);
+    });
+  });
+
+  // ---------------- Resize ----------------
+  window.addEventListener('resize', function () {
+    const mainContent = document.getElementById('mainContent');
+    if (window.innerWidth <= 768) {
+      mainContent.classList.remove('shifted');
+      sidebarPinned = false;
+    }
+  });
+
+  // ---------------- Init ----------------
+  document.addEventListener('DOMContentLoaded', function () {
+    initializeDynamicSidebar();
+    fetchAppointments();
+  });
+</script>
+
+</body>
+</html>
